@@ -30,7 +30,9 @@ La aplicación está desarrollada con **Kotlin** utilizando **Android Studio**.
 
 ##  Equipo de desarrollo
 
-Proyecto desarrollado por estudiantes de **Desarrollo de Aplicaciones Multiplataforma (DAM)**.
+Proyecto desarrollado por estudiantes de **Desarrollo de Aplicaciones Multiplataforma (DAM)**:
+★ Haiat Ghaddari 
+☆ Júlia Rizo
 
 ##  Estado del proyecto
 
