@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isListMember(listId) {
+      return request.auth != null
+        && request.auth.uid in
+          get(/databases/$(database)/documents/lists/$(listId)).data.members;
+    }
+
+    function addsOneMember() {
+      let previous = resource.data.members;
+      let next = request.resource.data.members;
+      let added = next[previous.size()];
+      return added is string
+        && added.size() > 0
+        && added.size() <= 128
+        && !(added in previous)
+        && next == previous.concat([added]);
+    }
+
+    match /users/{userId} {
+      allow read, create, update, delete:
+        if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /lists/{listId} {
+      allow get, list: if request.auth != null
+        && request.auth.uid in resource.data.members;
+
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['nombre', 'ownerId', 'members', 'createdAt'])
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.members == [request.auth.uid]
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() > 0
+        && request.resource.data.createdAt is timestamp;
+
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.members
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nombre'])
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() > 0;
+
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.ownerId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+        && addsOneMember();
+
+      match /items/{itemId} {
+        allow read, create, update, delete: if isListMember(listId);
+      }
+
+      match /categories/{categoryId} {
+        allow read: if isListMember(listId);
+        allow create: if isListMember(listId)
+          && request.resource.data.keys().hasOnly(['nom'])
+          && request.resource.data.nom is string
+          && request.resource.data.nom.size() > 0;
+      }
+    }
+  }
+}

@@ -1,10 +1,13 @@
 package com.example.llistadelacompraJH
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +36,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.exceptions.ClearCredentialException
 import com.example.llistadelacompraJH.ui.screens.HomeScreen
 import com.example.llistadelacompraJH.ui.screens.LoginScreen
+import com.example.llistadelacompraJH.ui.screens.ShoppingListScreen
 import com.example.llistadelacompraJH.ui.theme.LlistaDeLaCompraJHTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -85,6 +89,16 @@ fun LlistaDeLaCompraJHApp() {
 @Composable
 private fun ShoppingListsApp(userId: String, email: String?, onSignOut: () -> Unit) {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    var selectedListId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedListName by rememberSaveable { mutableStateOf("") }
+
+    val listId = selectedListId
+    if (listId != null) {
+        val closeList = { selectedListId = null }
+        BackHandler(onBack = closeList)
+        ShoppingListScreen(listId, selectedListName, userId, onBack = closeList)
+        return
+    }
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -105,12 +119,29 @@ private fun ShoppingListsApp(userId: String, email: String?, onSignOut: () -> Un
     ) {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             when (currentDestination) {
-                AppDestinations.HOME -> HomeScreen(userId, modifier = Modifier.padding(innerPadding))
+                AppDestinations.HOME -> HomeScreen(
+                    userId = userId,
+                    modifier = Modifier.padding(innerPadding),
+                    onLlistaClick = { list ->
+                        selectedListName = list.nombre
+                        selectedListId = list.id
+                    }
+                )
                 AppDestinations.PROFILE -> Column(
                     modifier = Modifier.padding(innerPadding).padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     email?.let { Text(it) }
+                    val context = LocalContext.current
+                    var copied by remember { mutableStateOf(false) }
+                    Text("Comparte tu código con quien quiera invitarte a una lista.")
+                    OutlinedButton(onClick = {
+                        val clipboard = context.getSystemService(ClipboardManager::class.java)
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Código de usuario", userId))
+                        copied = true
+                    }) {
+                        Text(if (copied) "Volver a copiar mi código" else "Copiar mi código")
+                    }
                     OutlinedButton(onClick = onSignOut) { Text("Cerrar sesión") }
                 }
                 AppDestinations.FAVORITES -> Greeting(
@@ -128,7 +159,7 @@ enum class AppDestinations(
 ) {
     HOME("Home", R.drawable.ic_home),
     FAVORITES("Favorites", R.drawable.ic_favorite),
-    PROFILE("Profile", R.drawable.ic_account_box),
+    PROFILE("Perfil", R.drawable.ic_account_box),
 }
 
 @Composable

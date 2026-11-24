@@ -191,7 +191,7 @@ fun HomeScreen(
     }
 }
 
-private fun firestoreError(error: Throwable, fallback: String): String {
+internal fun firestoreError(error: Throwable, fallback: String): String {
     return if ((error as? FirebaseFirestoreException)?.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
         "Firestore ha denegado el acceso. Revisa los permisos del proyecto."
     } else {
