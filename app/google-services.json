@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "636280850327-f4ktgcquagbur2virol1oaokutvhbh53.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.llistadelacompraJH",
+            "certificate_hash": "8bedf43dac32d773a3a945a40576515f37829db7"
+          }
+        },
+        {
           "client_id": "636280850327-elt8238gso3fmfr4k9usc22mas4229d7.apps.googleusercontent.com",
           "client_type": 3
         }
